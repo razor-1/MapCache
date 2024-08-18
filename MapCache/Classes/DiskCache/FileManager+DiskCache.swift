@@ -18,6 +18,7 @@ import Foundation
 ///
 /// Original source code from [Haneke](https://github.com/Haneke/HanekeSwift/blob/master/Haneke/NSFileManager%2BHaneke.swift)
 ///
+@available(iOS 14, *)
 extension FileManager {
     
     /// Gets the list of files of this  the directory.
