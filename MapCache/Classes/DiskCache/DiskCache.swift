@@ -141,7 +141,7 @@ open class DiskCache {
         let attributes = try? FileManager.default.attributesOfItem(atPath: fileURL.path)
         if let creationDate = attributes?[.modificationDate] as? Date ?? attributes?[.creationDate] as? Date {
             let delta = Date().timeIntervalSince(creationDate)
-            return delta < self.expirationTime
+            return delta > self.expirationTime
         } else {
             Log.error(message: "DiskCache::isExpired --- unable to determine file modification or creation date. filepath: \(filePath)")
         }
