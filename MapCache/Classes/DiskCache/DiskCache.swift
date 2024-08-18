@@ -14,6 +14,7 @@ import Foundation
 /// A specialized cache for storing data in disk.
 /// Based on [Haneke Disk Cache](https://github.com/Haneke/HanekeSwift) and customized for the MapCache project.
 ///
+@available(iOS 14.0, *)
 open class DiskCache {
     
     /// Gets the root base folder to be used.
@@ -123,7 +124,7 @@ open class DiskCache {
         do {
             try data.write(to: URL(fileURLWithPath: filePath), options: Data.WritingOptions.atomicWrite)
         } catch {
-            Log.error(message: "DiskCache::setDataSync --- Failed to write key: \(key) filepath: \(filePath)", error: error)
+            Log.info(message: "DiskCache::setDataSync --- Failed to write key: \(key) filepath: \(filePath)", error: error)
         }
         //Now add to the diskSize the file size
         var diskBlocks = Double(data.count) / 4096.0
@@ -143,7 +144,7 @@ open class DiskCache {
             let delta = Date().timeIntervalSince(creationDate)
             return delta > self.expirationTime
         } else {
-            Log.error(message: "DiskCache::isExpired --- unable to determine file modification or creation date. filepath: \(filePath)")
+            Log.info(message: "DiskCache::isExpired --- unable to determine file modification or creation date. filepath: \(filePath)")
         }
         
         return true

@@ -10,6 +10,7 @@
 
 
 import Foundation
+import os
 
 ///
 /// For logging messages on console.
@@ -23,29 +24,32 @@ import Foundation
 /// ```
 ///
 ///
+@available(iOS 14.0, *)
 public struct Log {
     
     /// The tag [MapCache]
-    fileprivate static let tag = "[MapCache]"
+//    fileprivate static let tag = "[MapCache]"
+    
+    private static let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "MapCache")
     
     /// Log Levels
-    fileprivate enum Level : String {
-        /// `[Debug]` For displaying messages useful during development.
-        case Debug = "[DEBUG]"
-        /// `[ERROR]`For displaying messages of bad situations, very, very bad situations.
-        case Error = "[ERROR]"
-    }
+//    fileprivate enum Level : String {
+//        /// `[Debug]` For displaying messages useful during development.
+//        case Debug = "[DEBUG]"
+//        /// `[ERROR]`For displaying messages of bad situations, very, very bad situations.
+//        case Error = "[ERROR]"
+//    }
     
     ///
     /// The actual method that prints.
     /// - Parameter level: log level to show
     /// - Parameter message: message to show
     /// - Parameter error: error to show if any on addition to the message. Uses the pattern `{message} with error {error}`
-    fileprivate static func log(_ level: Level, _ message: @autoclosure () -> String, _ error: Error? = nil) {
+    private static func logMessage(_ message: @autoclosure () -> String, _ error: Error? = nil) -> String {
         if let error = error {
-            print("\(tag)\(level.rawValue) \(message()) with error \(error)")
+            return "\(message()) with error \(error)"
         } else {
-            print("\(tag)\(level.rawValue) \(message())")
+            return message()
         }
     }
     
@@ -62,8 +66,14 @@ public struct Log {
     /// - Parameter error: error to display if any.
     static func debug(message: @autoclosure () -> String, error: Error? = nil) {
         #if DEBUG
-        log(.Debug, message(), error)
+        let message = logMessage(message(), error)
+        self.logger.debug("\(message)")
         #endif
+    }
+    
+    static func info(message: @autoclosure () -> String, error: Error? = nil) {
+        let message = logMessage(message(), error)
+        self.logger.info("\(message)")
     }
     
     ///
@@ -78,7 +88,8 @@ public struct Log {
     /// - Parameter error: error to display
 
     static func error(message: @autoclosure () -> String, error: Error? = nil) {
-        log(.Error, message(), error)
+        let message = logMessage(message(), error)
+        self.logger.error("\(message)")
     }
     
 }

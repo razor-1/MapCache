@@ -13,6 +13,7 @@ import MapKit
 /// This is the main implementation of the MapCacheProtocol, the actual cache
 ///
 
+@available(iOS 14.0, *)
 open class MapCache : MapCacheProtocol {
     ///
     /// Cofiguration that will be used to set up the behavior of the `MapCache` instance
@@ -86,21 +87,21 @@ open class MapCache : MapCacheProtocol {
                              failure fail: ((Error?) -> ())? = nil,
                              success succeed: @escaping (Data) -> ()) {
         let url = self.url(forTilePath: path)
-        print ("MapCache::fetchTileFromServer() url=\(url)")
+        Log.debug(message: "MapCache::fetchTileFromServer() url=\(url)")
         let task = URLSession.shared.dataTask(with: url) {(data, response, error) in
             if error != nil {
-                print("!!! MapCache::fetchTileFromServer Error for url= \(url) \(error.debugDescription)")
+                Log.info(message: "!!! MapCache::fetchTileFromServer Error for url= \(url) \(error.debugDescription)")
                 fail!(error)
                 return
             }
             guard let data = data else {
-                print("!!! MapCache::fetchTileFromServer No data for url= \(url)")
+                Log.info(message: "!!! MapCache::fetchTileFromServer No data for url= \(url)")
                 fail!(nil)
                 return
             }
             guard let httpResponse = response as? HTTPURLResponse,
             (200...299).contains(httpResponse.statusCode) else {
-                print("!!! MapCache::fetchTileFromServer statusCode != 2xx url= \(url)")
+                Log.info(message: "!!! MapCache::fetchTileFromServer statusCode != 2xx url= \(url)")
                 fail!(nil)
                 return
             }
@@ -125,7 +126,7 @@ open class MapCache : MapCacheProtocol {
        // Tries to load the tile from the server.
        // If it fails returns error to the caller.
         let tileFromServerFallback = { () -> () in
-            print("MapCache::tileFromServerFallback:: key=\(key)" )
+            Log.debug(message: "MapCache::tileFromServerFallback:: key=\(key)" )
             self.fetchTileFromServer(at: path,
                                 failure: {error in result(nil, error)},
                                 success: {data in
