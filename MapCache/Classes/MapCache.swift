@@ -125,7 +125,7 @@ open class MapCache : MapCacheProtocol {
        // Tries to load the tile from the server.
        // If it fails returns error to the caller.
         let tileFromServerFallback = { () -> () in
-//            print ("MapCache::tileFromServerFallback:: key=\(key)" )
+            print("MapCache::tileFromServerFallback:: key=\(key)" )
             self.fetchTileFromServer(at: path,
                                 failure: {error in result(nil, error)},
                                 success: {data in
