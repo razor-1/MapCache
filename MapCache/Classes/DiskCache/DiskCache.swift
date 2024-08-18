@@ -50,6 +50,10 @@ open class DiskCache {
     ///
     /// This size is calculated each time it is used
     /// - Seealso: `diskSize`
+    ///
+    
+    // expirationTime is how long the cache is valid for. It defaults to 24 hours.
+    open var expirationTime: TimeInterval = 0
     
     open var fileSize: UInt64? {
         return try? FileManager.default.fileSizeForDirectory(at: folderURL)
@@ -75,7 +79,8 @@ open class DiskCache {
     /// Constructor
     /// - Parameter withName: Name of the cache, will be the subfolder name too.
     /// - Parameter capacity: capacity of the cache in bytes. Defaults to virutally unlimited capacity (`UINT64_MAX`)
-    public init(withName cacheName: String, capacity: UInt64 = UINT64_MAX) {
+    /// - Parameter expirationTime: per-key cache validity time. After this time, the cache key will be expired and not used
+    public init(withName cacheName: String, capacity: UInt64 = UINT64_MAX, expirationTime: TimeInterval = 0) {
         folderURL = DiskCache.baseURL().appendingPathComponent(cacheName, isDirectory: true)
         do {
             try FileManager.default.createDirectory(at: self.folderURL, withIntermediateDirectories: true, attributes: nil)
@@ -83,6 +88,7 @@ open class DiskCache {
             Log.error(message: "DiskCache::init --- Failed to create directory \(folderURL.absoluteString)", error: error)
         }
         self.capacity = capacity
+        self.expirationTime = expirationTime
         cacheQueue.async(execute: {
             self.diskSize = self.calculateDiskSize()
             self.controlCapacity()
@@ -126,6 +132,23 @@ open class DiskCache {
         self.controlCapacity()
     }
     
+    /// Determine if the cache key has expired, based on the expirationTime.
+    open func isExpired(key: String) -> Bool {
+        guard self.expirationTime > 0 else { return false }
+        
+        let filePath = path(forKey: key)
+        let fileURL = URL(fileURLWithPath: filePath)
+        let attributes = try? FileManager.default.attributesOfItem(atPath: fileURL.path)
+        if let creationDate = attributes?[.modificationDate] as? Date ?? attributes?[.creationDate] as? Date {
+            let delta = Date().timeIntervalSince(creationDate)
+            return delta < self.expirationTime
+        } else {
+            Log.error(message: "DiskCache::isExpired --- unable to determine file modification or creation date. filepath: \(filePath)")
+        }
+        
+        return true
+    }
+    
     /// Fetches the image data from storage synchronously.
     ///
     /// - Parameter forKey: Key within the cache
@@ -136,6 +159,10 @@ open class DiskCache {
         let path = self.path(forKey: key)
         do {
             let data = try Data(contentsOf: URL(fileURLWithPath: path), options: Data.ReadingOptions())
+            if isExpired(key: key) {
+                removeFile(atPath: path)
+                throw CacheError.expired
+            }
             succeed(data)
             self.updateDiskAccessDate(atPath: path)
         } catch {
@@ -291,4 +318,8 @@ private func isNoSuchFileError(_ error : Error?) -> Bool {
         return NSCocoaErrorDomain == (error as NSError).domain && (error as NSError).code == NSFileReadNoSuchFileError
     }
     return false
+}
+
+enum CacheError: Error {
+    case expired
 }

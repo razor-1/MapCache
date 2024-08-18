@@ -72,6 +72,12 @@ public struct MapCacheConfig  {
     public var capacity: UInt64 = UINT64_MAX
     
     ///
+    /// per-key cache expiration time
+    /// a value of 0 disables expiration; cached contents live until the cache is full or is manually cleared
+    ///
+    public var expirationTime: TimeInterval = 0
+    
+    ///
     /// Tile size of the tile. Default is 256x256
     ///
     public var tileSize: CGSize = CGSize(width: 256, height: 256)

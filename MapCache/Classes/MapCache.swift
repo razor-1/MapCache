@@ -36,7 +36,7 @@ open class MapCache : MapCacheProtocol {
     ///
     public init(withConfig config: MapCacheConfig ) {
         self.config = config
-        diskCache = DiskCache(withName: config.cacheName, capacity: config.capacity)
+        diskCache = DiskCache(withName: config.cacheName, capacity: config.capacity, expirationTime: config.expirationTime)
     }
     
     ///
@@ -125,12 +125,12 @@ open class MapCache : MapCacheProtocol {
        // Tries to load the tile from the server.
        // If it fails returns error to the caller.
         let tileFromServerFallback = { () -> () in
-            print ("MapCache::tileFromServerFallback:: key=\(key)" )
+//            print ("MapCache::tileFromServerFallback:: key=\(key)" )
             self.fetchTileFromServer(at: path,
                                 failure: {error in result(nil, error)},
                                 success: {data in
                                     self.diskCache.setData(data, forKey: key)
-                                               print ("MapCache::fetchTileFromServer:: Data received saved cacheKey=\(key)" )
+//                                               print ("MapCache::fetchTileFromServer:: Data received saved cacheKey=\(key)" )
                                     result(data, nil)})
         }
         
